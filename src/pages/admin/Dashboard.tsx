@@ -2,46 +2,52 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
+  BarChart3, 
+  Users, 
+  FileText, 
+  Settings,
+  PlusCircle,
+  Eye,
+  Edit,
+  LogOut,
+  Home,
   LayoutDashboard, 
   FolderOpen, 
   MessageSquare, 
   User, 
-  Settings,
-  LogOut,
   Plus,
-  Eye,
-  Edit,
   Trash2,
   TrendingUp,
   Clock
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check login status
-    const loginStatus = localStorage.getItem("isAdminLoggedIn");
-    if (loginStatus !== "true") {
+    if (!user) {
       navigate("/admin");
-      return;
     }
-    setIsLoggedIn(true);
-  }, [navigate]);
+  }, [user, navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAdminLoggedIn");
+  const handleLogout = async () => {
+    await signOut();
     toast({
       title: "Logged out successfully",
-      description: "You have been signed out of the admin panel.",
+      description: "You have been signed out of your account.",
     });
-    navigate("/");
+    navigate("/admin");
   };
+
+  if (!user) {
+    return null;
+  }
 
   // Mock data
   const stats = [
@@ -131,7 +137,7 @@ const Dashboard = () => {
       title: "Add New Project",
       description: "Create and publish a new project",
       icon: Plus,
-      href: "/admin/projects/new",
+      href: "/admin/projects",
       color: "bg-primary"
     },
     {
@@ -150,10 +156,6 @@ const Dashboard = () => {
     }
   ];
 
-  if (!isLoggedIn) {
-    return null; // or loading spinner
-  }
-
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -163,14 +165,14 @@ const Dashboard = () => {
             <LayoutDashboard className="h-8 w-8 text-primary" />
             <div>
               <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, John!</p>
+              <p className="text-muted-foreground">Welcome back, {user.email}!</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
             <Button variant="outline" size="sm" asChild>
               <Link to="/">
-                <Eye className="h-4 w-4 mr-2" />
+                <Home className="h-4 w-4 mr-2" />
                 View Portfolio
               </Link>
             </Button>

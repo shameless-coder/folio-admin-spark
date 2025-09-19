@@ -4,13 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, Mail, ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, signIn } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -18,27 +20,27 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (user) {
+      navigate("/admin/dashboard");
+    }
+  }, [user, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Note: This is UI-only authentication
-    // For real authentication, connect to Supabase
-    if (formData.email === "admin@example.com" && formData.password === "password") {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+    const { error } = await signIn(formData.email, formData.password);
+    
+    if (error) {
+      setError(error);
+    } else {
       toast({
         title: "Login successful!",
         description: "Welcome to the admin dashboard.",
       });
-      
-      // Store login state in localStorage (for demo purposes)
-      localStorage.setItem("isAdminLoggedIn", "true");
       navigate("/admin/dashboard");
-    } else {
-      setError("Invalid email or password");
     }
     
     setIsLoading(false);
@@ -126,22 +128,9 @@ const Login = () => {
               </Button>
             </form>
 
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm text-muted-foreground text-center mb-2">
-                <strong>Demo Credentials:</strong>
-              </p>
-              <p className="text-sm text-center font-mono">
-                Email: admin@example.com<br />
-                Password: password
-              </p>
-            </div>
-
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                For real authentication, connect to{" "}
-                <Button variant="link" className="p-0 h-auto text-primary">
-                  Supabase
-                </Button>
+                Sign in with your Supabase account credentials
               </p>
             </div>
           </CardContent>
